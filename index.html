@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Focus Timer  Rocket Launch</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container">
+    <div class="dashboard">
+      <div class="dashboard-top">
+        <div class="mode-indicator focus" id="modeIndicator">🎯 FOCUS</div>
+      </div>
+
+      <div class="dashboard-controls">
+        <div class="time-setting">
+          <label>Minutes</label>
+          <input id="minutesInput" type="number" min="1" max="240" value="25">
+        </div>
+        <div class="button-group">
+          <button id="startBtn" class="btn-primary">▶ Start</button>
+          <button id="pauseBtn" class="btn-secondary" disabled>⏸ Pause</button>
+          <button id="resetBtn" class="btn-warning">↺ Reset</button>
+          <button id="abortBtn" class="btn-abort" disabled>💥 Abort</button>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat"><span id="totalSessions">0</span><label>sessions</label></div>
+        <div class="stat"><span id="totalMinutes">0</span><label>min focused</label></div>
+        <div class="stat"><span id="currentStreak">0</span><label>🔥 streak</label></div>
+      </div>
+
+      <div class="achievements" id="achievements"></div>
+    </div>
+
+    <div class="achievement-popup" id="achievementPopup"></div>
+
+    <section class="stage">
+      <div class="sky">
+        <div class="sun"></div>
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        <div class="stars"></div>
+      </div>
+
+      <div class="scene">
+        <div class="launch-area">
+          <div class="launch-pad">
+            <div class="pad-base"></div>
+            <div class="pad-stands"></div>
+          </div>
+
+          <div class="rocket-wrap" id="rocketWrap">
+            <div class="smoke" id="smoke"></div>
+            <div class="rocket" id="rocket">
+              <div class="nose"></div>
+              <div class="body">
+                <div class="window"></div>
+                <div class="stripe"></div>
+                <div class="stage-ring"></div>
+                <div class="fins">
+                  <div class="fin left"></div>
+                  <div class="fin right"></div>
+                </div>
+              </div>
+              <div class="engine">
+                <div class="flame flame-outer"></div>
+                <div class="flame flame-mid"></div>
+                <div class="flame flame-inner"></div>
+                <div class="flame flame-mid"></div>
+                <div class="flame flame-outer"></div>
+              </div>
+              <div class="trail" id="trail"></div>
+            </div>
+          </div>
+
+          <div class="ground">
+            <div class="dirt"></div>
+            <div class="grass"></div>
+          </div>
+        </div>
+
+        <div class="clock-wrap">
+          <div class="flap-clock" id="flapClock">
+            <div class="digit" id="minutesTens" data-value="0">
+              <div class="card">
+                <div class="face top">0</div>
+                <div class="face bottom">0</div>
+              </div>
+            </div>
+            <div class="digit" id="minutesOnes" data-value="0">
+              <div class="card">
+                <div class="face top">0</div>
+                <div class="face bottom">0</div>
+              </div>
+            </div>
+            <span class="colon">:</span>
+            <div class="digit" id="secondsTens" data-value="0">
+              <div class="card">
+                <div class="face top">0</div>
+                <div class="face bottom">0</div>
+              </div>
+            </div>
+            <div class="digit" id="secondsOnes" data-value="0">
+              <div class="card">
+                <div class="face top">0</div>
+                <div class="face bottom">0</div>
+              </div>
+            </div>
+          </div>
+          <div class="label">Focus Timer</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
