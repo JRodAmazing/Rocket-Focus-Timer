@@ -40,6 +40,14 @@
 - **5-minute pause timeout** - auto-abort if paused too long
 - **Focus broken explosion** - rocket explodes if you reset mid-session
 
+### 🤖 AI Learning Assistant Chatbot
+- **Integrated Claude AI chatbot** - learn about AI systems while you focus
+- **Multiple AI system demonstrations** - RAG, Lexicon, Symbolic, Generative, Composite
+- **Educational responses** - explains which AI approach is used and why
+- **Knowledge base** - built-in context for AI/ML topics
+- **System tags** - visual indicators showing which AI systems are active
+- **API key storage** - securely saved in localStorage
+
 ---
 
 ## 🚀 Achievements 🚀
@@ -105,6 +113,31 @@ python -m http.server 8000
 - **CSS3** - Animations & styling
 - **Vanilla JavaScript** - Logic & Web Audio API
 - **localStorage** - Stats persistence
+- **Anthropic Claude API** - AI chatbot responses
+
+---
+
+## 🤖 AI Chatbot Usage
+
+The built-in AI Learning Assistant helps you learn about AI systems:
+
+1. **Add your API key** - Get one from [console.anthropic.com](https://console.anthropic.com)
+2. **Click the chatbot panel** to expand
+3. **Ask questions** about AI topics:
+   - "What is RAG?"
+   - "Explain symbolic AI"
+   - "How does generative AI work?"
+   - "What are the latest AI models?"
+
+### AI Systems Demonstrated
+
+| Icon | System | Description |
+|------|--------|-------------|
+| 🔍 | RAG | Retrieval-Augmented Generation |
+| 📚 | Lexicon | NLP vocabulary analysis |
+| 🔣 | Symbolic | Rule-based logical reasoning |
+| 🧠 | Generative | Content creation with LLMs |
+| 🔀 | Composite | Hybrid multi-system approach |
 
 ---
 
