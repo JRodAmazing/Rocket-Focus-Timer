@@ -141,6 +141,16 @@ The built-in AI Learning Assistant helps you learn about AI systems:
 
 ---
 
+## 🚀 Demo
+
+https://github.com/user-attachments/assets/demo.mp4
+
+https://github.com/JRodAmazing/Rocket-Focus-Timer/raw/main/demo.mp4
+
+<video src="demo.mp4" controls width="100%"></video>
+
+---
+
 ## 🚀 Screenshots
 
 *Focus Mode* - Blue sky, rocket on launch pad, timer counting down
