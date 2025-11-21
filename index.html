@@ -3,11 +3,51 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Focus Timer  Rocket Launch</title>
+  <title>Focus Timer Rocket Launch</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <main class="container">
+    <!-- AI Learning Chatbot -->
+    <div class="chatbot-container" id="chatbotContainer">
+      <div class="chatbot-header">
+        <div class="chatbot-title">
+          <span class="bot-icon">🤖</span>
+          <span>AI Learning Assistant</span>
+        </div>
+        <button class="chatbot-toggle" id="chatbotToggle">−</button>
+      </div>
+      <div class="chatbot-body" id="chatbotBody">
+        <div class="chat-messages" id="chatMessages">
+          <div class="message bot-message">
+            <div class="message-content">
+              <p>Welcome! I'm your AI Learning Assistant. Ask me about:</p>
+              <ul>
+                <li>🔍 <strong>RAG</strong> - Retrieval-Augmented Generation</li>
+                <li>📚 <strong>Lexicon</strong> - NLP & terminology</li>
+                <li>🧠 <strong>Generative AI</strong> - LLMs, prompts, models</li>
+                <li>🔣 <strong>Symbolic AI</strong> - Logic, rules, reasoning</li>
+                <li>🔀 <strong>Composite AI</strong> - Hybrid systems</li>
+                <li>📰 <strong>AI News</strong> - Latest updates & releases</li>
+              </ul>
+              <p>I'll show you which AI system I use for each answer!</p>
+            </div>
+            <div class="system-tag">
+              <span class="tag">🎯 System: Generative AI</span>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" id="chatInput" placeholder="Ask about AI systems, prompts, news..." />
+          <button id="sendBtn" class="send-btn">Send</button>
+        </div>
+        <div class="api-config">
+          <input type="password" id="apiKey" placeholder="Anthropic API Key" />
+          <button id="saveApiKey" class="save-key-btn">Save</button>
+        </div>
+      </div>
+    </div>
+
     <div class="dashboard">
       <div class="dashboard-top">
         <div class="mode-indicator focus" id="modeIndicator">🎯 FOCUS</div>
@@ -117,5 +157,6 @@
   </main>
 
   <script src="script.js"></script>
+  <script src="chatbot.js"></script>
 </body>
 </html>
