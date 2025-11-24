@@ -8,75 +8,7 @@
 </head>
 <body>
   <main class="container">
-    <!-- AI Learning Chatbot -->
-    <div class="chatbot-container" id="chatbotContainer">
-      <div class="chatbot-header">
-        <div class="chatbot-title">
-          <span class="bot-icon">🤖</span>
-          <span>AI Learning Assistant</span>
-        </div>
-        <button class="chatbot-toggle" id="chatbotToggle">−</button>
-      </div>
-      <div class="chatbot-body" id="chatbotBody">
-        <div class="chat-messages" id="chatMessages">
-          <div class="message bot-message">
-            <div class="message-content">
-              <p>Welcome! I'm your AI Learning Assistant. Ask me about:</p>
-              <ul>
-                <li>🔍 <strong>RAG</strong> - Retrieval-Augmented Generation</li>
-                <li>📚 <strong>Lexicon</strong> - NLP & terminology</li>
-                <li>🧠 <strong>Generative AI</strong> - LLMs, prompts, models</li>
-                <li>🔣 <strong>Symbolic AI</strong> - Logic, rules, reasoning</li>
-                <li>🔀 <strong>Composite AI</strong> - Hybrid systems</li>
-                <li>📰 <strong>AI News</strong> - Latest updates & releases</li>
-              </ul>
-              <p>I'll show you which AI system I use for each answer!</p>
-            </div>
-            <div class="system-tag">
-              <span class="tag">🎯 System: Generative AI</span>
-            </div>
-          </div>
-        </div>
-        <div class="chat-input-area">
-          <input type="text" id="chatInput" placeholder="Ask about AI systems, prompts, news..." />
-          <button id="sendBtn" class="send-btn">Send</button>
-        </div>
-        <div class="api-config">
-          <input type="password" id="apiKey" placeholder="Anthropic API Key" />
-          <button id="saveApiKey" class="save-key-btn">Save</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="dashboard">
-      <div class="dashboard-top">
-        <div class="mode-indicator focus" id="modeIndicator">🎯 FOCUS</div>
-      </div>
-
-      <div class="dashboard-controls">
-        <div class="time-setting">
-          <label>Minutes</label>
-          <input id="minutesInput" type="number" min="1" max="240" value="25">
-        </div>
-        <div class="button-group">
-          <button id="startBtn" class="btn-primary">▶ Start</button>
-          <button id="pauseBtn" class="btn-secondary" disabled>⏸ Pause</button>
-          <button id="resetBtn" class="btn-warning">↺ Reset</button>
-          <button id="abortBtn" class="btn-abort" disabled>💥 Abort</button>
-        </div>
-      </div>
-
-      <div class="stats-bar">
-        <div class="stat"><span id="totalSessions">0</span><label>sessions</label></div>
-        <div class="stat"><span id="totalMinutes">0</span><label>min focused</label></div>
-        <div class="stat"><span id="currentStreak">0</span><label>🔥 streak</label></div>
-      </div>
-
-      <div class="achievements" id="achievements"></div>
-    </div>
-
-    <div class="achievement-popup" id="achievementPopup"></div>
-
+    <!-- ROCKET SCENE - THE STAR! -->
     <section class="stage">
       <div class="sky">
         <div class="sun"></div>
@@ -154,9 +86,206 @@
         </div>
       </div>
     </section>
+
+    <!-- BOTTOM DASHBOARD (Minimizable) -->
+    <div class="dashboard-bottom" id="dashboardBottom">
+      <button class="dashboard-toggle" id="dashboardToggle">
+        <span class="toggle-text">▼ Dashboard</span>
+      </button>
+
+      <div class="dashboard-content" id="dashboardContent">
+        <!-- Mode & Quick Actions -->
+        <div class="dashboard-header">
+          <div class="mode-indicator focus" id="modeIndicator">🎯 FOCUS</div>
+          <div class="quick-actions">
+            <button id="notepadBtn" class="quick-action-btn" title="Notepad">📝</button>
+            <button id="musicBtn" class="quick-action-btn" title="Music">🎵</button>
+          </div>
+        </div>
+
+        <!-- Timer Controls -->
+        <div class="dashboard-controls">
+          <div class="time-setting">
+            <label>Focus</label>
+            <input id="minutesInput" type="number" min="1" max="240" value="25">
+          </div>
+          <div class="time-setting">
+            <label>Short Break</label>
+            <input id="shortBreakInput" type="number" min="1" max="30" value="5">
+          </div>
+          <div class="time-setting">
+            <label>Long Break</label>
+            <input id="longBreakInput" type="number" min="1" max="60" value="15">
+          </div>
+          <div class="button-group">
+            <button id="startBtn" class="btn-primary">▶ Start</button>
+            <button id="pauseBtn" class="btn-secondary" disabled>⏸ Pause</button>
+            <button id="resetBtn" class="btn-warning">↺ Reset</button>
+            <button id="abortBtn" class="btn-abort" disabled>💥 Abort</button>
+          </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+          <div class="stat"><span id="totalSessions">0</span><label>sessions</label></div>
+          <div class="stat"><span id="totalMinutes">0</span><label>minutes</label></div>
+          <div class="stat"><span id="currentStreak">0</span><label>🔥 streak</label></div>
+          <div class="stat focus-stat"><span id="focusPoints">0</span><label>⭐ points</label></div>
+        </div>
+
+        <!-- Achievements & Milestones -->
+        <div class="achievements" id="achievements"></div>
+
+        <!-- Task Queue -->
+        <div class="task-section">
+          <div class="task-header">
+            <h3>📋 Task Queue</h3>
+            <button id="addTaskBtn" class="btn-add-task">+ Add Task</button>
+          </div>
+          <div class="task-list" id="taskList">
+            <div class="empty-tasks">
+              <p>No tasks yet. Add a task to get started! 🚀</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Current Task Display -->
+        <div class="current-task-display" id="currentTaskDisplay" style="display:none;">
+          <div class="current-task-label">Working on:</div>
+          <div class="current-task-name" id="currentTaskName"></div>
+          <div class="current-task-progress" id="currentTaskProgress"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Learning Chatbot -->
+    <div class="chatbot-container" id="chatbotContainer">
+      <div class="chatbot-header">
+        <div class="chatbot-title">
+          <span class="bot-icon">🤖</span>
+          <span>AI Learning Assistant</span>
+        </div>
+        <button class="chatbot-toggle" id="chatbotToggle">−</button>
+      </div>
+      <div class="chatbot-body" id="chatbotBody">
+        <div class="chat-messages" id="chatMessages">
+          <div class="message bot-message">
+            <div class="message-content">
+              <p>Welcome! I'm your AI Learning Assistant. I can help you with:</p>
+              <p><strong>🎯 Timer Commands:</strong></p>
+              <ul>
+                <li>"Start a 25 minute session"</li>
+                <li>"Pause the timer"</li>
+                <li>"How much time is left?"</li>
+                <li>"Show my stats"</li>
+                <li>"Set short break to 7 minutes"</li>
+              </ul>
+              <p><strong>🤖 AI Learning:</strong></p>
+              <ul>
+                <li>🔍 RAG, 📚 Lexicon, 🔣 Symbolic AI</li>
+                <li>🧠 Generative AI, 🔀 Composite AI</li>
+                <li>📰 AI News & Latest Models</li>
+              </ul>
+            </div>
+            <div class="system-tag">
+              <span class="tag">🎯 System: Generative AI</span>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" id="chatInput" placeholder="Control timer or ask about AI..." />
+          <button id="sendBtn" class="send-btn">Send</button>
+        </div>
+        <div class="api-config">
+          <input type="password" id="apiKey" placeholder="Anthropic API Key" />
+          <button id="saveApiKey" class="save-key-btn">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievement Popup -->
+    <div class="achievement-popup" id="achievementPopup"></div>
+
+    <!-- Notepad Modal -->
+    <div class="modal" id="notepadModal">
+      <div class="modal-content notepad-modal">
+        <div class="modal-header">
+          <h3>📝 Focus Notes</h3>
+          <button class="modal-close" id="notepadClose">×</button>
+        </div>
+        <div class="modal-body">
+          <textarea id="notepadText" placeholder="Take notes on what you're working on..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button id="copyNotesBtn" class="btn-action">📋 Copy</button>
+          <button id="downloadNotesBtn" class="btn-action">💾 Download</button>
+          <button id="clearNotesBtn" class="btn-action btn-warning-action">🗑️ Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Music Player Modal -->
+    <div class="modal" id="musicModal">
+      <div class="modal-content music-modal">
+        <div class="modal-header">
+          <h3>🎵 Focus Music</h3>
+          <button class="modal-close" id="musicClose">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="music-player">
+            <div class="track-info">
+              <div class="track-name" id="trackName">Select a track</div>
+            </div>
+            <div class="track-list">
+              <button class="track-btn" data-track="lofi">🎧 Lo-fi Beats</button>
+              <button class="track-btn" data-track="rain">🌧️ Rain Sounds</button>
+              <button class="track-btn" data-track="cafe">☕ Café Ambience</button>
+              <button class="track-btn" data-track="forest">🌲 Forest Sounds</button>
+              <button class="track-btn" data-track="waves">🌊 Ocean Waves</button>
+              <button class="track-btn" data-track="fire">🔥 Fireplace</button>
+            </div>
+            <div class="player-controls">
+              <button id="playPauseBtn" class="player-btn" disabled>▶️ Play</button>
+              <div class="volume-control">
+                <label>🔊</label>
+                <input type="range" id="volumeSlider" min="0" max="100" value="50">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div class="modal" id="addTaskModal">
+      <div class="modal-content task-modal">
+        <div class="modal-header">
+          <h3>➕ Add New Task</h3>
+          <button class="modal-close" id="addTaskClose">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Task Name</label>
+            <input type="text" id="taskNameInput" placeholder="e.g., Write project proposal" />
+          </div>
+          <div class="form-group">
+            <label>Estimated Pomodoros</label>
+            <input type="number" id="taskPomodorosInput" min="1" max="20" value="2" />
+            <small>How many 🍅 do you think this will take?</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancelTaskBtn" class="btn-action btn-warning-action">Cancel</button>
+          <button id="saveTaskBtn" class="btn-action">Save Task</button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script src="script.js"></script>
   <script src="chatbot.js"></script>
+  <script src="features.js"></script>
+  <script src="tasks.js"></script>
+  <script src="dashboard.js"></script>
 </body>
 </html>

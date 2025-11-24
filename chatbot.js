@@ -11,6 +11,88 @@ const chatbotToggle = document.getElementById('chatbotToggle')
 const chatbotContainer = document.getElementById('chatbotContainer')
 const chatbotBody = document.getElementById('chatbotBody')
 
+// Timer command detection and handling
+function detectTimerCommand(query) {
+  const q = query.toLowerCase()
+
+  // Start timer
+  if ((q.includes('start') || q.includes('begin')) && (q.includes('timer') || q.includes('session') || q.includes('focus'))) {
+    const minuteMatch = q.match(/(\d+)\s*(?:minute|min|m)/i)
+    if (minuteMatch) {
+      const mins = parseInt(minuteMatch[1])
+      minutesInput.value = mins
+      totalSeconds = mins * 60
+      remaining = totalSeconds
+      updateDigits(remaining)
+    }
+    if (!running) {
+      startTimer()
+      return { handled: true, response: `Started ${minutesInput.value} minute focus session! 🚀` }
+    }
+    return { handled: true, response: 'Timer is already running!' }
+  }
+
+  // Pause timer
+  if ((q.includes('pause') || q.includes('stop')) && !q.includes('unpause')) {
+    if (running) {
+      pauseBtn.click()
+      return { handled: true, response: 'Timer paused. ⏸️ Remember, you have 5 minutes before auto-abort!' }
+    }
+    return { handled: true, response: 'Timer is not running.' }
+  }
+
+  // Resume timer
+  if (q.includes('resume') || q.includes('unpause') || q.includes('continue')) {
+    if (isPaused) {
+      startBtn.click()
+      return { handled: true, response: 'Timer resumed! Keep going! 💪' }
+    }
+    return { handled: true, response: 'Timer is not paused.' }
+  }
+
+  // Reset timer
+  if (q.includes('reset') && !q.includes('how')) {
+    resetTimer()
+    return { handled: true, response: 'Timer reset to initial value.' }
+  }
+
+  // Time remaining
+  if ((q.includes('time left') || q.includes('remaining') || q.includes('how long') || q.includes('how much time')) && !q.includes('how does')) {
+    const mins = Math.floor(remaining / 60)
+    const secs = remaining % 60
+    const timeStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`
+    return { handled: true, response: `⏱️ Time remaining: ${timeStr}${isBreakMode ? ' (Break time!)' : ''}` }
+  }
+
+  // Stats query
+  if (q.includes('stats') || q.includes('statistic') || (q.includes('my') && (q.includes('progress') || q.includes('achievement')))) {
+    const achievements = stats.earnedAchievements.length
+    return {
+      handled: true,
+      response: `📊 Your Stats:\n\n🚀 Sessions: ${stats.totalSessions}\n⏰ Total Focus: ${stats.totalMinutes} minutes\n🔥 Streak: ${stats.currentStreak} days\n🏆 Achievements: ${achievements}/8 unlocked\n💪 Best Streak: ${stats.bestStreak} days`
+    }
+  }
+
+  // Set break duration
+  if ((q.includes('set') || q.includes('change')) && q.includes('break')) {
+    const minuteMatch = q.match(/(\d+)\s*(?:minute|min|m)/i)
+    if (minuteMatch) {
+      const mins = parseInt(minuteMatch[1])
+      if (q.includes('short')) {
+        shortBreakInput.value = mins
+        saveStats()
+        return { handled: true, response: `Short break set to ${mins} minutes! ☕` }
+      } else if (q.includes('long')) {
+        longBreakInput.value = mins
+        saveStats()
+        return { handled: true, response: `Long break set to ${mins} minutes! 🎉` }
+      }
+    }
+  }
+
+  return { handled: false }
+}
+
 // State
 let apiKey = localStorage.getItem('anthropic_api_key') || ''
 if (apiKey) apiKeyInput.value = '••••••••••••••••'
@@ -217,8 +299,67 @@ async function callClaude(message, systems, context) {
   }
 }
 
+// Build reasoning trace
+function buildReasoningTrace(query, systems, context) {
+  const trace = {
+    step1_detection: {
+      query: query,
+      keywords_matched: [],
+      primary_system: systems.primary,
+      secondary_systems: systems.secondary
+    },
+    step2_retrieval: {
+      topics_searched: Object.keys(knowledgeBase).length,
+      matches_found: context.length,
+      retrieved_topics: context.map(c => c.topic)
+    },
+    step3_routing: {
+      pipeline: 'Query → ' + systems.primary.toUpperCase() + ' → [' + systems.secondary.map(s => s.toUpperCase()).join(', ') + '] → Response'
+    }
+  }
+
+  const q = query.toLowerCase()
+  const keywordMap = {
+    rag: ['rag', 'retrieval', 'vector', 'embedding'],
+    lexicon: ['lexicon', 'nlp', 'tokeniz', 'vocabulary'],
+    symbolic: ['symbolic', 'rule', 'logic', 'reasoning'],
+    composite: ['composite', 'hybrid', 'neuro-symbolic'],
+    generative: ['prompt', 'few-shot', 'chain of thought']
+  }
+
+  for (const [system, keywords] of Object.entries(keywordMap)) {
+    keywords.forEach(kw => {
+      if (q.includes(kw)) trace.step1_detection.keywords_matched.push(kw)
+    })
+  }
+
+  if (trace.step1_detection.keywords_matched.length === 0) {
+    trace.step1_detection.keywords_matched = ['(default routing)']
+  }
+
+  return trace
+}
+
+// Format reasoning trace for display
+function formatReasoningTrace(trace) {
+  let html = '<div class="reasoning-trace">'
+  html += '<details><summary>🔬 <strong>Reasoning Trace</strong></summary>'
+  html += '<div class="trace-content">'
+  html += '<p><strong>Step 1 - Detection:</strong><br>'
+  html += '• Keywords: ' + trace.step1_detection.keywords_matched.join(', ') + '<br>'
+  html += '• Primary: ' + trace.step1_detection.primary_system.toUpperCase() + '<br>'
+  html += '• Secondary: [' + trace.step1_detection.secondary_systems.join(', ') + ']</p>'
+  html += '<p><strong>Step 2 - Retrieval:</strong><br>'
+  html += '• Searched ' + trace.step2_retrieval.topics_searched + ' topics<br>'
+  html += '• Found ' + trace.step2_retrieval.matches_found + ' match(es): ' + trace.step2_retrieval.retrieved_topics.join(', ') + '</p>'
+  html += '<p><strong>Step 3 - Pipeline:</strong><br>'
+  html += '• ' + trace.step3_routing.pipeline + '</p>'
+  html += '</div></details></div>'
+  return html
+}
+
 // Add message to chat
-function addMessage(content, isUser, systems) {
+function addMessage(content, isUser, systems, trace) {
   const messageDiv = document.createElement('div')
   messageDiv.className = 'message ' + (isUser ? 'user-message' : 'bot-message')
 
@@ -236,6 +377,10 @@ function addMessage(content, isUser, systems) {
 
   if (!isUser && systems) {
     messageDiv.innerHTML += formatSystemTags(systems)
+  }
+
+  if (!isUser && trace) {
+    messageDiv.innerHTML += formatReasoningTrace(trace)
   }
 
   chatMessages.appendChild(messageDiv)
@@ -265,15 +410,25 @@ async function handleSend() {
   addMessage(message, true, null)
   chatInput.value = ''
 
+  // Check for timer commands first
+  const timerCommand = detectTimerCommand(message)
+  if (timerCommand.handled) {
+    setTimeout(() => {
+      addMessage(timerCommand.response, false, { primary: 'symbolic', secondary: ['composite'] })
+    }, 300)
+    return
+  }
+
   const systems = detectSystem(message)
   const context = retrieveContext(message)
+  const trace = buildReasoningTrace(message, systems, context)
 
   showTyping()
 
   const response = await callClaude(message, systems, context)
 
   hideTyping()
-  addMessage(response.content, false, response.systems)
+  addMessage(response.content, false, response.systems, trace)
 }
 
 // Event Listeners

@@ -1,4 +1,6 @@
 const minutesInput = document.getElementById('minutesInput')
+const shortBreakInput = document.getElementById('shortBreakInput')
+const longBreakInput = document.getElementById('longBreakInput')
 const startBtn = document.getElementById('startBtn')
 const pauseBtn = document.getElementById('pauseBtn')
 const resetBtn = document.getElementById('resetBtn')
@@ -34,8 +36,6 @@ const PAUSE_LIMIT = 5 * 60 * 1000 // 5 minutes in ms
 // Pomodoro state
 let isBreakMode = false
 let sessionsBeforeLongBreak = 0
-const SHORT_BREAK = 5 * 60  // 5 minutes
-const LONG_BREAK = 15 * 60  // 15 minutes
 
 // Audio context
 let audioContext = null
@@ -148,7 +148,15 @@ const achievements = [
 function loadStats() {
   const saved = localStorage.getItem('focusTimerStats')
   if (saved) {
-    return JSON.parse(saved)
+    const stats = JSON.parse(saved)
+    // Load break preferences if they exist
+    if (stats.shortBreakMinutes) {
+      shortBreakInput.value = stats.shortBreakMinutes
+    }
+    if (stats.longBreakMinutes) {
+      longBreakInput.value = stats.longBreakMinutes
+    }
+    return stats
   }
   return {
     totalSessions: 0,
@@ -156,11 +164,18 @@ function loadStats() {
     currentStreak: 0,
     bestStreak: 0,
     lastSessionDate: null,
-    earnedAchievements: []
+    earnedAchievements: [],
+    shortBreakMinutes: 5,
+    longBreakMinutes: 15,
+    focusPoints: 0,
+    unlockedMilestones: []
   }
 }
 
 function saveStats() {
+  // Save break preferences along with stats
+  stats.shortBreakMinutes = parseInt(shortBreakInput.value || 5)
+  stats.longBreakMinutes = parseInt(longBreakInput.value || 15)
   localStorage.setItem('focusTimerStats', JSON.stringify(stats))
 }
 
@@ -230,6 +245,11 @@ function completeSession() {
   saveStats()
   updateStatsDisplay()
   checkAchievements()
+
+  // Award focus points for completing pomodoro
+  if (window.onPomodoroComplete) {
+    window.onPomodoroComplete()
+  }
 }
 
 function formatNum(n){return String(n).padStart(2,'0')}
@@ -366,6 +386,8 @@ function setFocusMode() {
   remaining = totalSeconds
   updateDigits(remaining)
   minutesInput.disabled = false
+  shortBreakInput.disabled = false
+  longBreakInput.disabled = false
 }
 
 function setBreakMode() {
@@ -375,19 +397,21 @@ function setBreakMode() {
   modeIndicator.className = 'mode-indicator break'
   modeIndicator.textContent = '☕ BREAK'
 
-  // Determine break length
+  // Determine break length using custom durations
   sessionsBeforeLongBreak++
   if (sessionsBeforeLongBreak >= 4) {
-    totalSeconds = LONG_BREAK
+    totalSeconds = parseInt(longBreakInput.value || 15) * 60
     sessionsBeforeLongBreak = 0
     modeIndicator.textContent = '☕ LONG BREAK'
   } else {
-    totalSeconds = SHORT_BREAK
+    totalSeconds = parseInt(shortBreakInput.value || 5) * 60
   }
 
   remaining = totalSeconds
   updateDigits(remaining)
   minutesInput.disabled = true
+  shortBreakInput.disabled = true
+  longBreakInput.disabled = true
 
   // Reset rocket visibility and position for descent
   rocket.style.opacity = '1'
@@ -475,6 +499,8 @@ function startTimer(){
   abortBtn.disabled=false
   if (!isBreakMode) {
     minutesInput.disabled=true
+    shortBreakInput.disabled=true
+    longBreakInput.disabled=true
   }
 
   // Clear any pause timeout
@@ -493,6 +519,8 @@ function stopTimer(){
   abortBtn.disabled=true
   if (!isBreakMode) {
     minutesInput.disabled=false
+    shortBreakInput.disabled=false
+    longBreakInput.disabled=false
   }
   if(timerInterval) clearInterval(timerInterval)
 
@@ -528,6 +556,8 @@ function abortMission() {
     pauseBtn.disabled = true
     abortBtn.disabled = true
     minutesInput.disabled = false
+    shortBreakInput.disabled = false
+    longBreakInput.disabled = false
   }, 1500)
 }
 
@@ -643,6 +673,14 @@ minutesInput.addEventListener('change',()=>{
     remaining = totalSeconds
     updateDigits(remaining)
   }
+})
+
+shortBreakInput.addEventListener('change', () => {
+  saveStats()
+})
+
+longBreakInput.addEventListener('change', () => {
+  saveStats()
 })
 
 // Initialize
