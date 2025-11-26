@@ -610,6 +610,13 @@ body{align-items:stretch;padding:0}
 .player-btn:hover:not(:disabled){background:#5a6ed8;transform:translateY(-2px)}
 .player-btn:disabled{opacity:0.5;cursor:not-allowed}
 
+.stop-btn{
+  background:#f44336;
+}
+.stop-btn:hover:not(:disabled){
+  background:#d32f2f;
+}
+
 .volume-control{display:flex;align-items:center;gap:8px;flex:1}
 .volume-control input{flex:1}
 

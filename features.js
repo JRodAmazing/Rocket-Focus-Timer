@@ -14,6 +14,7 @@ const musicBtn = document.getElementById('musicBtn')
 const musicClose = document.getElementById('musicClose')
 const trackName = document.getElementById('trackName')
 const playPauseBtn = document.getElementById('playPauseBtn')
+const stopBtn = document.getElementById('stopBtn')
 const volumeSlider = document.getElementById('volumeSlider')
 const trackBtns = document.querySelectorAll('.track-btn')
 
@@ -347,8 +348,9 @@ function selectTrack(trackId) {
   trackBtns.forEach(btn => btn.classList.remove('active'))
   document.querySelector(`[data-track="${trackId}"]`).classList.add('active')
 
-  // Enable play button
+  // Enable play and stop buttons
   playPauseBtn.disabled = false
+  stopBtn.disabled = false
 
   // Stop current playback if any
   if (isPlaying) {
@@ -443,7 +445,20 @@ function pauseMusic() {
 
 function stopMusic() {
   pauseMusic()
+  // Reset track selection
+  currentTrack = null
+  trackName.textContent = 'Select a track'
+  trackBtns.forEach(btn => btn.classList.remove('active'))
+  playPauseBtn.disabled = true
+  stopBtn.disabled = true
+  showNotification('Music Stopped', 'Track playback stopped.')
 }
+
+// Stop button functionality
+stopBtn.addEventListener('click', () => {
+  if (!currentTrack) return
+  stopMusic()
+})
 
 // Volume control
 volumeSlider.addEventListener('input', (e) => {
