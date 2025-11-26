@@ -98,6 +98,7 @@
         <div class="dashboard-header">
           <div class="mode-indicator focus" id="modeIndicator">🎯 FOCUS</div>
           <div class="quick-actions">
+            <button id="profileBtn" class="quick-action-btn" title="Profile">👤</button>
             <button id="notepadBtn" class="quick-action-btn" title="Notepad">📝</button>
             <button id="musicBtn" class="quick-action-btn" title="Music">🎵</button>
           </div>
@@ -136,15 +137,47 @@
         <!-- Achievements & Milestones -->
         <div class="achievements" id="achievements"></div>
 
-        <!-- Task Queue -->
-        <div class="task-section">
-          <div class="task-header">
-            <h3>📋 Task Queue</h3>
-            <button id="addTaskBtn" class="btn-add-task">+ Add Task</button>
+        <!-- Kanban Board -->
+        <div class="kanban-section">
+          <div class="kanban-header">
+            <h3>📊 Kanban Board</h3>
+            <div class="kanban-actions">
+              <button id="viewPrioritiesBtn" class="btn-priorities">🎯 View Priorities</button>
+              <button id="addTaskBtn" class="btn-add-task">+ Add Task</button>
+            </div>
           </div>
-          <div class="task-list" id="taskList">
-            <div class="empty-tasks">
-              <p>No tasks yet. Add a task to get started! 🚀</p>
+          <div class="kanban-board" id="kanbanBoard">
+            <div class="kanban-column" data-status="backlog">
+              <div class="column-header">
+                <span class="column-icon">📦</span>
+                <span class="column-title">Backlog</span>
+                <span class="column-count" id="backlogCount">0</span>
+              </div>
+              <div class="column-tasks" id="backlogTasks"></div>
+            </div>
+            <div class="kanban-column" data-status="todo">
+              <div class="column-header">
+                <span class="column-icon">📝</span>
+                <span class="column-title">To Do</span>
+                <span class="column-count" id="todoCount">0</span>
+              </div>
+              <div class="column-tasks" id="todoTasks"></div>
+            </div>
+            <div class="kanban-column" data-status="in-progress">
+              <div class="column-header">
+                <span class="column-icon">⚡</span>
+                <span class="column-title">In Progress</span>
+                <span class="column-count" id="inProgressCount">0</span>
+              </div>
+              <div class="column-tasks" id="inProgressTasks"></div>
+            </div>
+            <div class="kanban-column" data-status="done">
+              <div class="column-header">
+                <span class="column-icon">✅</span>
+                <span class="column-title">Done</span>
+                <span class="column-count" id="doneCount">0</span>
+              </div>
+              <div class="column-tasks" id="doneTasks"></div>
             </div>
           </div>
         </div>
@@ -265,18 +298,265 @@
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label>Task Name</label>
+            <label>Task Name*</label>
             <input type="text" id="taskNameInput" placeholder="e.g., Write project proposal" />
           </div>
           <div class="form-group">
-            <label>Estimated Pomodoros</label>
-            <input type="number" id="taskPomodorosInput" min="1" max="20" value="2" />
-            <small>How many 🍅 do you think this will take?</small>
+            <label>Description</label>
+            <textarea id="taskDescInput" placeholder="Add details about this task..." rows="3"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Difficulty</label>
+              <select id="taskDifficultyInput">
+                <option value="S">S - Small</option>
+                <option value="M" selected>M - Medium</option>
+                <option value="L">L - Large</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Estimated Pomodoros</label>
+              <input type="number" id="taskPomodorosInput" min="1" max="20" value="2" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tag</label>
+              <select id="taskTagInput">
+                <option value="work">💼 Work</option>
+                <option value="personal">🏠 Personal</option>
+                <option value="training">📚 Training</option>
+                <option value="health">💪 Health</option>
+                <option value="creative">🎨 Creative</option>
+                <option value="urgent">⚡ Urgent</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Deadline (Optional)</label>
+              <input type="date" id="taskDeadlineInput" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Priority Assessment</label>
+            <div class="priority-grid">
+              <label class="priority-option">
+                <input type="checkbox" id="taskUrgentInput" />
+                <span>⏰ Urgent</span>
+              </label>
+              <label class="priority-option">
+                <input type="checkbox" id="taskImportantInput" />
+                <span>⭐ Important</span>
+              </label>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
           <button id="cancelTaskBtn" class="btn-action btn-warning-action">Cancel</button>
           <button id="saveTaskBtn" class="btn-action">Save Task</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Briefing Modal -->
+    <div class="modal daily-briefing-modal" id="dailyBriefingModal">
+      <div class="modal-content briefing-content">
+        <div class="briefing-header">
+          <h2 id="briefingGreeting">Good morning, J.Rod! 🚀</h2>
+          <button class="modal-close" id="briefingClose">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="briefing-section joke-section">
+            <h3>😄 Daily Joke</h3>
+            <p id="dailyJoke" class="joke-text">Loading...</p>
+          </div>
+          <div class="briefing-section news-section">
+            <h3>📰 Today's Brief</h3>
+            <div id="newsBrief" class="news-container">Loading news...</div>
+          </div>
+          <div class="briefing-section priority-preview">
+            <h3>🎯 Your Top Priority (Eat The Frog)</h3>
+            <div id="frogTask" class="frog-display">No tasks yet</div>
+          </div>
+          <div class="briefing-section eisenhower-preview">
+            <h3>📊 Eisenhower Matrix - Top 3</h3>
+            <div id="topThreeTasks" class="top-three">No tasks yet</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="startDayBtn" class="btn-action btn-start-day">Let's Launch! 🚀</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Priorities View Modal -->
+    <div class="modal" id="prioritiesModal">
+      <div class="modal-content priorities-content">
+        <div class="modal-header">
+          <h3>🎯 Task Priorities & Recommendations</h3>
+          <button class="modal-close" id="prioritiesClose">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="priority-section frog-section">
+            <h4>🐸 Eat The Frog - Do This First!</h4>
+            <p class="section-desc">Your biggest, most important task that you should tackle first thing.</p>
+            <div id="frogTaskFull" class="frog-task-card">Calculating...</div>
+          </div>
+          <div class="priority-section matrix-section">
+            <h4>📊 Eisenhower Matrix</h4>
+            <div class="eisenhower-grid">
+              <div class="matrix-quadrant urgent-important">
+                <h5>⚡⭐ Urgent & Important</h5>
+                <div id="urgentImportant" class="quadrant-tasks"></div>
+              </div>
+              <div class="matrix-quadrant not-urgent-important">
+                <h5>⭐ Important, Not Urgent</h5>
+                <div id="notUrgentImportant" class="quadrant-tasks"></div>
+              </div>
+              <div class="matrix-quadrant urgent-not-important">
+                <h5>⚡ Urgent, Not Important</h5>
+                <div id="urgentNotImportant" class="quadrant-tasks"></div>
+              </div>
+              <div class="matrix-quadrant not-urgent-not-important">
+                <h5>📋 Not Urgent, Not Important</h5>
+                <div id="notUrgentNotImportant" class="quadrant-tasks"></div>
+              </div>
+            </div>
+          </div>
+          <div class="priority-section recommended-order">
+            <h4>🎯 Recommended Task Order</h4>
+            <div id="recommendedOrder" class="ordered-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Dashboard Modal -->
+    <div class="modal" id="profileModal">
+      <div class="modal-content profile-content">
+        <div class="modal-header">
+          <h3>👤 Profile & Stats</h3>
+          <button class="modal-close" id="profileClose">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="profile-hero">
+            <div class="profile-avatar">🚀</div>
+            <h2>J.Rod</h2>
+            <div class="profile-level">
+              <span class="level-badge">Level <span id="userLevel">1</span></span>
+              <span class="xp-display"><span id="userXP">0</span> XP</span>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">✅</div>
+              <div class="stat-value" id="profileTotalTasks">0</div>
+              <div class="stat-label">Tasks Completed</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🐸</div>
+              <div class="stat-value" id="profileFrogsSlain">0</div>
+              <div class="stat-label">Frogs Slain</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🔥</div>
+              <div class="stat-value" id="profileBestStreak">0</div>
+              <div class="stat-label">Best Streak</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">⚡</div>
+              <div class="stat-value" id="profileFastestTask">--</div>
+              <div class="stat-label">Fastest Task</div>
+            </div>
+          </div>
+          <div class="badges-showcase">
+            <h4>🏅 Badges Earned</h4>
+            <div id="badgesDisplay" class="badges-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Break Games Modal -->
+    <div class="modal" id="breakGamesModal">
+      <div class="modal-content games-content">
+        <div class="modal-header">
+          <h3>🎮 Break Time - Quick Play!</h3>
+          <button class="modal-close" id="gamesClose">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="game-menu" id="gameMenu">
+            <button class="game-option" data-game="trivia">
+              <span class="game-icon">🧠</span>
+              <span class="game-name">AI Trivia</span>
+              <span class="game-desc">Test your knowledge</span>
+            </button>
+            <button class="game-option" data-game="pong">
+              <span class="game-icon">🏓</span>
+              <span class="game-name">Quick Pong</span>
+              <span class="game-desc">Classic paddle game</span>
+            </button>
+            <button class="game-option" data-game="rocket">
+              <span class="game-icon">🚀</span>
+              <span class="game-name">Rocket Landing</span>
+              <span class="game-desc">Land safely!</span>
+            </button>
+            <button class="game-option" data-game="memory">
+              <span class="game-icon">🃏</span>
+              <span class="game-name">Memory Match</span>
+              <span class="game-desc">Flip and match</span>
+            </button>
+          </div>
+          <div class="game-container" id="gameContainer" style="display:none;">
+            <div id="gameCanvas"></div>
+            <div class="game-controls">
+              <button id="backToMenuBtn" class="btn-action">← Back to Menu</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- End of Day Summary Modal -->
+    <div class="modal" id="endOfDayModal">
+      <div class="modal-content summary-content">
+        <div class="modal-header">
+          <h3>🌟 Day Complete!</h3>
+          <button class="modal-close" id="summaryClose">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="summary-hero">
+            <h2>Great work today, J.Rod! 💪</h2>
+            <p class="summary-subtitle">Here's what you accomplished:</p>
+          </div>
+          <div class="summary-stats">
+            <div class="summary-stat">
+              <span class="summary-icon">✅</span>
+              <span class="summary-value" id="summaryTasksCompleted">0</span>
+              <span class="summary-label">Tasks Completed</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-icon">🐸</span>
+              <span class="summary-value" id="summaryFrogConquered">No</span>
+              <span class="summary-label">Frog Conquered</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-icon">⭐</span>
+              <span class="summary-value" id="summaryXPGained">0</span>
+              <span class="summary-label">XP Gained</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-icon">🔥</span>
+              <span class="summary-value" id="summaryStreak">0</span>
+              <span class="summary-label">Day Streak</span>
+            </div>
+          </div>
+          <div class="summary-achievements">
+            <h4>🏅 Today's Badges</h4>
+            <div id="summaryBadges" class="summary-badges-list"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="closeSummaryBtn" class="btn-action">Awesome! 🚀</button>
         </div>
       </div>
     </div>
@@ -286,6 +566,7 @@
   <script src="chatbot.js"></script>
   <script src="features.js"></script>
   <script src="tasks.js"></script>
+  <script src="briefing-games.js"></script>
   <script src="dashboard.js"></script>
 </body>
 </html>

@@ -1,39 +1,64 @@
-// Task Queue & Focus Points System
-// The ultimate focus maximizer 🚀
+// ===================================
+// ROCKET FOCUS - KANBAN & PRIORITIZATION SYSTEM
+// Full task management with Eat The Frog + Eisenhower Matrix
+// ===================================
 
-// DOM Elements
-const taskList = document.getElementById('taskList')
+// ===== DOM ELEMENTS =====
+const kanbanBoard = document.getElementById('kanbanBoard')
 const addTaskBtn = document.getElementById('addTaskBtn')
 const addTaskModal = document.getElementById('addTaskModal')
 const addTaskClose = document.getElementById('addTaskClose')
-const taskNameInput = document.getElementById('taskNameInput')
-const taskPomodorosInput = document.getElementById('taskPomodorosInput')
-const saveTaskBtn = document.getElementById('saveTaskBtn')
 const cancelTaskBtn = document.getElementById('cancelTaskBtn')
+const saveTaskBtn = document.getElementById('saveTaskBtn')
+
+// Task form inputs
+const taskNameInput = document.getElementById('taskNameInput')
+const taskDescInput = document.getElementById('taskDescInput')
+const taskDifficultyInput = document.getElementById('taskDifficultyInput')
+const taskPomodorosInput = document.getElementById('taskPomodorosInput')
+const taskTagInput = document.getElementById('taskTagInput')
+const taskDeadlineInput = document.getElementById('taskDeadlineInput')
+const taskUrgentInput = document.getElementById('taskUrgentInput')
+const taskImportantInput = document.getElementById('taskImportantInput')
+
+// Column count displays
+const backlogCount = document.getElementById('backlogCount')
+const todoCount = document.getElementById('todoCount')
+const inProgressCount = document.getElementById('inProgressCount')
+const doneCount = document.getElementById('doneCount')
+
+// Priorities modal
+const viewPrioritiesBtn = document.getElementById('viewPrioritiesBtn')
+const prioritiesModal = document.getElementById('prioritiesModal')
+const prioritiesClose = document.getElementById('prioritiesClose')
+
 const focusPointsEl = document.getElementById('focusPoints')
 const currentTaskDisplay = document.getElementById('currentTaskDisplay')
 const currentTaskName = document.getElementById('currentTaskName')
 const currentTaskProgress = document.getElementById('currentTaskProgress')
 
-// Task Management State
+// ===== STATE MANAGEMENT =====
 let tasks = loadTasks()
 let activeTaskId = null
 let focusPoints = stats.focusPoints || 0
+let userXP = loadUserXP()
+let userLevel = calculateLevel(userXP)
 
-// Milestone Definitions (Focus Points based)
-const milestones = [
-  { id: 'seedling', icon: '🌱', name: 'Focus Seedling', desc: 'Earn 10 focus points', points: 10 },
-  { id: 'sprout', icon: '🌿', name: 'Focus Sprout', desc: 'Earn 25 focus points', points: 25 },
-  { id: 'sapling', icon: '🌳', name: 'Focus Tree', desc: 'Earn 50 focus points', points: 50 },
-  { id: 'mountain', icon: '🏔️', name: 'Focus Mountain', desc: 'Earn 100 focus points', points: 100 },
-  { id: 'star', icon: '🌟', name: 'Focus Star', desc: 'Earn 200 focus points', points: 200 },
-  { id: 'astronaut', icon: '🚀', name: 'Focus Astronaut', desc: 'Earn 500 focus points', points: 500 },
-  { id: 'galaxy', icon: '🌌', name: 'Focus Galaxy', desc: 'Earn 1000 focus points', points: 1000 },
-  { id: 'universe', icon: '🌠', name: 'Focus Universe', desc: 'Earn 2000 focus points', points: 2000 },
-  { id: 'infinity', icon: '♾️', name: 'Focus Infinity', desc: 'Earn 5000 focus points', points: 5000 },
+// Gamification badges
+const BADGES = [
+  { id: 'first-task', icon: '🎯', name: 'First Task', desc: 'Complete your first task', check: s => s.tasksCompleted >= 1 },
+  { id: 'frog-slayer', icon: '🐸', name: 'Frog Slayer', desc: 'Complete your first Eat The Frog task', check: s => s.frogsSlain >= 1 },
+  { id: 'frog-master', icon: '🐸💪', name: 'Frog Master', desc: 'Complete 10 Frog tasks', check: s => s.frogsSlain >= 10 },
+  { id: 'productivity-pilot', icon: '✈️', name: 'Productivity Pilot', desc: 'Complete 5 tasks in one day', check: s => s.tasksCompletedToday >= 5 },
+  { id: 'rocket-booster', icon: '🚀', name: 'Rocket Booster', desc: 'Complete 20 tasks total', check: s => s.tasksCompleted >= 20 },
+  { id: 'full-day-streak', icon: '🔥', name: 'Full Day Streak', desc: 'Work 3 days in a row', check: s => s.currentStreak >= 3 },
+  { id: 'week-warrior', icon: '⚔️', name: 'Week Warrior', desc: 'Work 7 days in a row', check: s => s.currentStreak >= 7 },
+  { id: 'consistency-king', icon: '👑', name: 'Consistency King', desc: 'Work 30 days in a row', check: s => s.currentStreak >= 30 },
+  { id: 'speed-demon', icon: '⚡', name: 'Speed Demon', desc: 'Complete a task in under 15 minutes', check: s => s.fastestTask > 0 && s.fastestTask <= 15 },
+  { id: 'centurion', icon: '💯', name: 'Centurion', desc: 'Complete 100 tasks', check: s => s.tasksCompleted >= 100 },
 ]
 
-// Load tasks from localStorage
+// ===== UTILITY FUNCTIONS =====
 function loadTasks() {
   const saved = localStorage.getItem('focusTasks')
   if (saved) {
@@ -42,30 +67,161 @@ function loadTasks() {
   return []
 }
 
-// Save tasks to localStorage
 function saveTasks() {
   localStorage.setItem('focusTasks', JSON.stringify(tasks))
+  if (tasks.length > 0) {
+    recalculatePriorities()
+  }
 }
 
-// Add task
-function addTask(name, estimatedPomodoros) {
+function loadUserXP() {
+  const saved = localStorage.getItem('userXP')
+  return saved ? parseInt(saved) : 0
+}
+
+function saveUserXP() {
+  localStorage.setItem('userXP', userXP)
+}
+
+function calculateLevel(xp) {
+  // Level formula: Level = floor(sqrt(XP / 100)) + 1
+  return Math.floor(Math.sqrt(xp / 100)) + 1
+}
+
+function awardXP(amount, reason = '') {
+  userXP += amount
+  userLevel = calculateLevel(userXP)
+  saveUserXP()
+
+  // Animate XP gain
+  showFloatingXP(amount, reason)
+
+  // Check for level up
+  const prevLevel = calculateLevel(userXP - amount)
+  if (userLevel > prevLevel) {
+    showLevelUp(userLevel)
+  }
+
+  checkBadges()
+}
+
+function showFloatingXP(amount, reason) {
+  const popup = achievementPopup
+  popup.innerHTML = `<strong>+${amount} XP</strong><br>${reason || 'Great work!'}`
+  popup.classList.add('show')
+  setTimeout(() => popup.classList.remove('show'), 2000)
+}
+
+function showLevelUp(level) {
+  const popup = achievementPopup
+  popup.innerHTML = `
+    <div style="font-size:48px">🎉</div>
+    <div style="font-size:24px;font-weight:bold">LEVEL UP!</div>
+    <div style="font-size:18px">You're now Level ${level}!</div>
+  `
+  popup.classList.add('show')
+  playCompletionSound()
+  setTimeout(() => popup.classList.remove('show'), 4000)
+}
+
+function checkBadges() {
+  const gameStats = getGameStats()
+  let newBadges = []
+
+  BADGES.forEach(badge => {
+    if (!stats.earnedAchievements.includes(badge.id) && badge.check(gameStats)) {
+      stats.earnedAchievements.push(badge.id)
+      newBadges.push(badge)
+    }
+  })
+
+  if (newBadges.length > 0) {
+    saveStats()
+    newBadges.forEach(badge => showBadgeUnlock(badge))
+  }
+}
+
+function showBadgeUnlock(badge) {
+  const popup = achievementPopup
+  popup.innerHTML = `
+    <div style="font-size:36px;margin-bottom:8px">${badge.icon}</div>
+    <div style="font-weight:600;font-size:18px">${badge.name}</div>
+    <div style="font-size:13px;opacity:0.9;margin-top:4px">Badge Unlocked! 🎉</div>
+  `
+  popup.classList.add('show')
+  playCompletionSound()
+  setTimeout(() => popup.classList.remove('show'), 3500)
+}
+
+function getGameStats() {
+  const completedTasks = tasks.filter(t => t.status === 'done')
+  const frogsSlain = completedTasks.filter(t => t.wasFrog).length
+
+  // Tasks completed today
+  const today = new Date().toDateString()
+  const tasksCompletedToday = completedTasks.filter(t => {
+    const taskDate = new Date(t.completedAt || 0).toDateString()
+    return taskDate === today
+  }).length
+
+  // Fastest task (in minutes)
+  const fastestTask = completedTasks.reduce((min, t) => {
+    if (t.timeSpent && (min === 0 || t.timeSpent < min)) {
+      return t.timeSpent
+    }
+    return min
+  }, 0)
+
+  return {
+    tasksCompleted: completedTasks.length,
+    frogsSlain,
+    tasksCompletedToday,
+    fastestTask,
+    currentStreak: stats.currentStreak || 0,
+    bestStreak: stats.bestStreak || 0
+  }
+}
+
+// ===== TASK CRUD OPERATIONS =====
+function addTask(taskData) {
   const task = {
     id: Date.now(),
-    name: name,
-    estimatedPomodoros: estimatedPomodoros,
+    title: taskData.title || 'Untitled Task',
+    description: taskData.description || '',
+    difficulty: taskData.difficulty || 'M',
+    estimatedPomodoros: parseInt(taskData.estimatedPomodoros) || 2,
+    timeEstimate: (parseInt(taskData.estimatedPomodoros) || 2) * 25, // minutes
+    deadline: taskData.deadline || null,
+    tag: taskData.tag || 'work',
+    urgent: !!taskData.urgent,
+    important: !!taskData.important,
+    status: 'backlog',
     completedPomodoros: 0,
-    completed: false,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    completedAt: null,
+    wasFrog: false,
+    timeSpent: 0,
+    priorityScore: 0
   }
+
+  console.log('Creating task with data:', task)
 
   tasks.push(task)
   saveTasks()
-  renderTasks()
+  renderKanban()
 
   return task
 }
 
-// Delete task
+function updateTask(taskId, updates) {
+  const task = tasks.find(t => t.id === taskId)
+  if (task) {
+    Object.assign(task, updates)
+    saveTasks()
+    renderKanban()
+  }
+}
+
 function deleteTask(taskId) {
   tasks = tasks.filter(t => t.id !== taskId)
   if (activeTaskId === taskId) {
@@ -73,10 +229,86 @@ function deleteTask(taskId) {
     hideCurrentTaskDisplay()
   }
   saveTasks()
-  renderTasks()
+  renderKanban()
 }
 
-// Complete a pomodoro for a task
+function moveTask(taskId, newStatus) {
+  const task = tasks.find(t => t.id === taskId)
+  if (task) {
+    task.status = newStatus
+
+    // If moving to done, mark completion
+    if (newStatus === 'done' && !task.completedAt) {
+      completeTask(taskId)
+    }
+
+    saveTasks()
+    renderKanban()
+  }
+}
+
+function completeTask(taskId) {
+  const task = tasks.find(t => t.id === taskId)
+  if (!task) return
+
+  task.status = 'done'
+  task.completedAt = new Date().toISOString()
+
+  // Calculate time spent (rough estimate based on pomodoros)
+  task.timeSpent = task.completedPomodoros * 25
+
+  // Award XP based on difficulty and importance
+  let xpAmount = 10 // Base XP
+  if (task.difficulty === 'M') xpAmount = 15
+  if (task.difficulty === 'L') xpAmount = 25
+  if (task.important) xpAmount += 10
+  if (task.urgent) xpAmount += 5
+  if (task.wasFrog) xpAmount += 20
+
+  awardXP(xpAmount, `Completed: ${task.title}`)
+
+  // Award focus points
+  const pointsEarned = task.completedPomodoros
+  awardFocusPoints(pointsEarned)
+
+  // Check if this was the frog task
+  if (task.wasFrog) {
+    showFrogConquered()
+  }
+
+  saveTasks()
+  renderKanban()
+  checkBadges()
+
+  // Create confetti effect
+  createConfetti()
+}
+
+function createConfetti() {
+  // Simple confetti animation
+  for (let i = 0; i < 30; i++) {
+    const confetti = document.createElement('div')
+    confetti.className = 'confetti-piece'
+    confetti.style.left = Math.random() * 100 + 'vw'
+    confetti.style.background = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7'][Math.floor(Math.random() * 5)]
+    confetti.style.animationDelay = Math.random() * 0.3 + 's'
+    document.body.appendChild(confetti)
+    setTimeout(() => confetti.remove(), 3000)
+  }
+}
+
+function showFrogConquered() {
+  const popup = achievementPopup
+  popup.innerHTML = `
+    <div style="font-size:48px;margin-bottom:12px">🐸✨</div>
+    <div style="font-size:24px;font-weight:bold">FROG CONQUERED!</div>
+    <div style="font-size:16px;margin-top:8px">You did the hardest thing first! 💪</div>
+  `
+  popup.classList.add('show')
+  playCompletionSound()
+  setTimeout(() => popup.classList.remove('show'), 4000)
+}
+
 function completePomodoro(taskId) {
   const task = tasks.find(t => t.id === taskId)
   if (!task) return
@@ -84,23 +316,16 @@ function completePomodoro(taskId) {
   task.completedPomodoros++
 
   // Award focus points (1 point per pomodoro)
-  const pointsEarned = 1
-  awardFocusPoints(pointsEarned)
+  awardFocusPoints(1)
 
-  // Check if task is fully completed
-  if (task.completedPomodoros >= task.estimatedPomodoros) {
-    task.completed = true
-    // Bonus points for completing a task
-    const bonusPoints = Math.ceil(task.estimatedPomodoros * 0.5)
-    awardFocusPoints(bonusPoints, `Task Complete Bonus! +${bonusPoints} 🎉`)
-  }
+  // Award XP for completing pomodoro
+  awardXP(5, 'Pomodoro completed!')
 
   saveTasks()
-  renderTasks()
+  renderKanban()
   updateCurrentTaskDisplay()
 }
 
-// Award focus points
 function awardFocusPoints(points, customMessage = null) {
   focusPoints += points
   stats.focusPoints = focusPoints
@@ -116,280 +341,516 @@ function awardFocusPoints(points, customMessage = null) {
     focusPointsEl.style.transform = 'scale(1)'
     focusPointsEl.style.color = '#f57c00'
   }, 400)
-
-  // Check for milestone unlocks
-  checkMilestones()
-
-  // Show notification
-  if (customMessage) {
-    showNotification('Focus Points!', customMessage)
-  } else {
-    showNotification('Focus Points!', `+${points} point${points > 1 ? 's' : ''} earned! ⭐`)
-  }
 }
 
-// Check for milestone unlocks
-function checkMilestones() {
-  if (!stats.unlockedMilestones) {
-    stats.unlockedMilestones = []
-  }
+// ===== PRIORITIZATION ENGINE =====
+function recalculatePriorities() {
+  const activeTasks = tasks.filter(t => t.status !== 'done')
 
-  milestones.forEach(milestone => {
-    if (focusPoints >= milestone.points && !stats.unlockedMilestones.includes(milestone.id)) {
-      stats.unlockedMilestones.push(milestone.id)
-      saveStats()
-      showMilestonePopup(milestone)
-    }
-  })
+  // Calculate priority scores for each task
+  activeTasks.forEach(task => {
+    let score = 0
 
-  renderMilestones()
+    // Difficulty (bigger = higher priority for "frog")
+    if (task.difficulty === 'L') score += 30
+    if (task.difficulty === 'M') score += 15
+    if (task.difficulty === 'S') score += 5
 
-  // Update sidebar displays
-  if (window.updateNextMilestoneDisplay) {
-    window.updateNextMilestoneDisplay()
-  }
-  if (window.renderAllMilestones) {
-    window.renderAllMilestones()
-  }
-}
+    // Importance
+    if (task.important) score += 40
 
-// Show milestone unlock popup
-function showMilestonePopup(milestone) {
-  const popup = achievementPopup // Reuse achievement popup element
-  popup.innerHTML = `
-    <div style="font-size:36px;margin-bottom:8px">${milestone.icon}</div>
-    <div style="font-weight:600;font-size:18px">${milestone.name}</div>
-    <div style="font-size:13px;opacity:0.9;margin-top:4px">${milestone.points} Focus Points! 🎯</div>
-  `
-  popup.classList.add('show')
+    // Urgency
+    if (task.urgent) score += 25
 
-  // Play celebration sound
-  playCompletionSound()
-
-  setTimeout(() => {
-    popup.classList.remove('show')
-  }, 4000)
-}
-
-// Render milestones (add to achievements section)
-function renderMilestones() {
-  // Clear existing milestones
-  const existingMilestones = achievementsEl.querySelectorAll('.milestone-badge')
-  existingMilestones.forEach(m => m.remove())
-
-  // Add milestone badges
-  milestones.forEach(milestone => {
-    const badge = document.createElement('div')
-    badge.className = 'badge milestone-badge'
-
-    const isUnlocked = stats.unlockedMilestones && stats.unlockedMilestones.includes(milestone.id)
-    if (isUnlocked) {
-      badge.classList.add('earned')
+    // Deadline proximity
+    if (task.deadline) {
+      const daysUntil = Math.ceil((new Date(task.deadline) - new Date()) / (1000 * 60 * 60 * 24))
+      if (daysUntil <= 1) score += 50
+      else if (daysUntil <= 3) score += 30
+      else if (daysUntil <= 7) score += 15
     }
 
-    badge.textContent = milestone.icon
-    badge.title = `${milestone.name}: ${milestone.desc} ${isUnlocked ? '✓' : ''}`
+    // Time estimate (longer tasks get slight boost to encourage starting them)
+    score += Math.min(task.timeEstimate / 10, 10)
 
-    achievementsEl.appendChild(badge)
+    task.priorityScore = score
   })
-}
 
-// Set active task
-function setActiveTask(taskId) {
-  activeTaskId = taskId
-  renderTasks()
-  showCurrentTaskDisplay()
-}
+  // Reset all wasFrog flags
+  tasks.forEach(t => { if (t.status !== 'done') t.wasFrog = false })
 
-// Show current task display
-function showCurrentTaskDisplay() {
-  if (!activeTaskId) return
+  // Identify the "Eat The Frog" task
+  const frogTask = activeTasks.reduce((max, task) => {
+    return (task.priorityScore > (max?.priorityScore || 0)) ? task : max
+  }, null)
 
-  const task = tasks.find(t => t.id === activeTaskId)
-  if (!task) return
-
-  currentTaskName.textContent = task.name
-  const progress = `${task.completedPomodoros} / ${task.estimatedPomodoros} 🍅`
-  currentTaskProgress.textContent = progress
-  currentTaskDisplay.style.display = 'block'
-}
-
-// Update current task display
-function updateCurrentTaskDisplay() {
-  if (!activeTaskId || !currentTaskDisplay.style.display || currentTaskDisplay.style.display === 'none') return
-  showCurrentTaskDisplay()
-}
-
-// Hide current task display
-function hideCurrentTaskDisplay() {
-  currentTaskDisplay.style.display = 'none'
-}
-
-// Render all tasks
-function renderTasks() {
-  taskList.innerHTML = ''
-
-  if (tasks.length === 0) {
-    taskList.innerHTML = '<div class="empty-tasks"><p>No tasks yet. Add a task to get started! 🚀</p></div>'
-    return
+  if (frogTask) {
+    frogTask.wasFrog = true
   }
 
+  // Don't call saveTasks here to avoid infinite loop
+  localStorage.setItem('focusTasks', JSON.stringify(tasks))
+}
+
+function getEatTheFrogTask() {
+  return tasks.find(t => t.wasFrog && t.status !== 'done')
+}
+
+function getEisenhowerQuadrants() {
+  const activeTasks = tasks.filter(t => t.status !== 'done')
+
+  return {
+    urgentImportant: activeTasks.filter(t => t.urgent && t.important),
+    notUrgentImportant: activeTasks.filter(t => !t.urgent && t.important),
+    urgentNotImportant: activeTasks.filter(t => t.urgent && !t.important),
+    notUrgentNotImportant: activeTasks.filter(t => !t.urgent && !t.important)
+  }
+}
+
+function getRecommendedOrder() {
+  const activeTasks = tasks.filter(t => t.status !== 'done')
+  return activeTasks.sort((a, b) => (b.priorityScore || 0) - (a.priorityScore || 0))
+}
+
+// ===== KANBAN RENDERING =====
+function renderKanban() {
+  const columns = {
+    backlog: document.getElementById('backlogTasks'),
+    todo: document.getElementById('todoTasks'),
+    'in-progress': document.getElementById('inProgressTasks'),
+    done: document.getElementById('doneTasks')
+  }
+
+  // Clear all columns
+  Object.values(columns).forEach(col => col.innerHTML = '')
+
+  // Count tasks in each column
+  const counts = {
+    backlog: 0,
+    todo: 0,
+    'in-progress': 0,
+    done: 0
+  }
+
+  // Render tasks
   tasks.forEach(task => {
-    const taskItem = document.createElement('div')
-    taskItem.className = 'task-item'
-    if (task.completed) {
-      taskItem.classList.add('completed')
+    const card = createTaskCard(task)
+    if (columns[task.status]) {
+      columns[task.status].appendChild(card)
+      counts[task.status]++
     }
-    if (task.id === activeTaskId) {
-      taskItem.classList.add('active')
-    }
+  })
 
-    // Checkbox
-    const checkbox = document.createElement('div')
-    checkbox.className = 'task-checkbox'
-    if (task.completed) {
-      checkbox.classList.add('checked')
+  // Update counts
+  backlogCount.textContent = counts.backlog
+  todoCount.textContent = counts.todo
+  inProgressCount.textContent = counts['in-progress']
+  doneCount.textContent = counts.done
+
+  // Add empty state messages
+  Object.keys(columns).forEach(status => {
+    if (counts[status] === 0) {
+      const empty = document.createElement('div')
+      empty.className = 'empty-column'
+      empty.textContent = 'No tasks'
+      columns[status].appendChild(empty)
     }
-    checkbox.addEventListener('click', () => {
-      if (!task.completed) {
-        task.completed = true
-        saveTasks()
-        renderTasks()
+  })
+}
+
+function createTaskCard(task) {
+  const card = document.createElement('div')
+  card.className = 'kanban-card'
+  card.draggable = true
+
+  if (task.wasFrog) card.classList.add('frog-task')
+  if (task.urgent && task.important) card.classList.add('urgent-important')
+  if (task.id === activeTaskId) card.classList.add('active-task')
+
+  // Card header
+  const header = document.createElement('div')
+  header.className = 'card-header'
+
+  const title = document.createElement('div')
+  title.className = 'card-title'
+  title.textContent = task.title
+  if (task.wasFrog) title.textContent = '🐸 ' + task.title
+
+  const tagBadge = document.createElement('span')
+  tagBadge.className = 'card-tag'
+  tagBadge.textContent = getTagEmoji(task.tag)
+  tagBadge.title = task.tag
+
+  header.appendChild(title)
+  header.appendChild(tagBadge)
+
+  // Card body
+  if (task.description) {
+    const desc = document.createElement('div')
+    desc.className = 'card-description'
+    desc.textContent = task.description
+    card.appendChild(desc)
+  }
+
+  // Card meta
+  const meta = document.createElement('div')
+  meta.className = 'card-meta'
+
+  const difficulty = document.createElement('span')
+  difficulty.className = 'card-difficulty diff-' + (task.difficulty || 'M').toLowerCase()
+  difficulty.textContent = task.difficulty || 'M'
+  difficulty.title = 'Difficulty'
+
+  const pomodoros = document.createElement('span')
+  pomodoros.className = 'card-pomodoros'
+  pomodoros.textContent = `${task.completedPomodoros}/${task.estimatedPomodoros} 🍅`
+
+  const priority = document.createElement('span')
+  priority.className = 'card-priority'
+  if (task.urgent) priority.textContent += '⚡'
+  if (task.important) priority.textContent += '⭐'
+
+  meta.appendChild(difficulty)
+  meta.appendChild(pomodoros)
+  if (priority.textContent) meta.appendChild(priority)
+
+  // Deadline if exists
+  if (task.deadline) {
+    const deadline = document.createElement('div')
+    deadline.className = 'card-deadline'
+    const daysUntil = Math.ceil((new Date(task.deadline) - new Date()) / (1000 * 60 * 60 * 24))
+    deadline.textContent = `📅 ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`
+    if (daysUntil <= 1) deadline.classList.add('deadline-urgent')
+    else if (daysUntil <= 3) deadline.classList.add('deadline-soon')
+    meta.appendChild(deadline)
+  }
+
+  // Card actions
+  const actions = document.createElement('div')
+  actions.className = 'card-actions'
+
+  // Move buttons (only for non-done tasks)
+  if (task.status !== 'done') {
+    const statusFlow = ['backlog', 'todo', 'in-progress', 'done']
+    const currentIndex = statusFlow.indexOf(task.status)
+
+    if (currentIndex < statusFlow.length - 1) {
+      const moveForward = document.createElement('button')
+      moveForward.className = 'card-btn card-btn-move'
+      moveForward.textContent = '→'
+      moveForward.title = `Move to ${statusFlow[currentIndex + 1]}`
+      moveForward.onclick = (e) => {
+        e.stopPropagation()
+        moveTask(task.id, statusFlow[currentIndex + 1])
       }
-    })
-
-    // Task content
-    const content = document.createElement('div')
-    content.className = 'task-content'
-
-    const nameEl = document.createElement('div')
-    nameEl.className = 'task-name'
-    nameEl.textContent = task.name
-
-    const pomodorosEl = document.createElement('div')
-    pomodorosEl.className = 'task-pomodoros'
-    for (let i = 0; i < task.estimatedPomodoros; i++) {
-      const dot = document.createElement('div')
-      dot.className = 'pomodoro-dot'
-      if (i < task.completedPomodoros) {
-        dot.classList.add('completed')
-      }
-      pomodorosEl.appendChild(dot)
+      actions.appendChild(moveForward)
     }
 
-    content.appendChild(nameEl)
-    content.appendChild(pomodorosEl)
-
-    // Actions
-    const actions = document.createElement('div')
-    actions.className = 'task-actions'
-
-    // Set as active button
-    if (!task.completed) {
-      const activeBtn = document.createElement('button')
-      activeBtn.className = 'task-action-btn'
-      activeBtn.textContent = task.id === activeTaskId ? '✓' : '▶️'
-      activeBtn.title = task.id === activeTaskId ? 'Active' : 'Set as active'
-      activeBtn.addEventListener('click', () => {
+    // Set as active button for in-progress tasks
+    if (task.status === 'in-progress') {
+      const setActive = document.createElement('button')
+      setActive.className = 'card-btn card-btn-active'
+      setActive.textContent = task.id === activeTaskId ? '✓' : '▶️'
+      setActive.title = 'Set as active task'
+      setActive.onclick = (e) => {
+        e.stopPropagation()
         if (task.id === activeTaskId) {
           activeTaskId = null
           hideCurrentTaskDisplay()
         } else {
           setActiveTask(task.id)
         }
-      })
-      actions.appendChild(activeBtn)
+      }
+      actions.appendChild(setActive)
+    }
+  }
+
+  // Delete button
+  const deleteBtn = document.createElement('button')
+  deleteBtn.className = 'card-btn card-btn-delete'
+  deleteBtn.textContent = '🗑️'
+  deleteBtn.title = 'Delete task'
+  deleteBtn.onclick = (e) => {
+    e.stopPropagation()
+    if (confirm(`Delete "${task.title}"?`)) {
+      deleteTask(task.id)
+    }
+  }
+  actions.appendChild(deleteBtn)
+
+  card.appendChild(header)
+  card.appendChild(meta)
+  card.appendChild(actions)
+
+  // Drag and drop
+  card.ondragstart = (e) => {
+    e.dataTransfer.setData('taskId', task.id)
+    card.classList.add('dragging')
+  }
+
+  card.ondragend = () => {
+    card.classList.remove('dragging')
+  }
+
+  return card
+}
+
+function getTagEmoji(tag) {
+  const emojis = {
+    work: '💼',
+    personal: '🏠',
+    training: '📚',
+    health: '💪',
+    creative: '🎨',
+    urgent: '⚡'
+  }
+  return emojis[tag] || '📋'
+}
+
+// ===== DRAG AND DROP =====
+function setupDragAndDrop() {
+  const columns = document.querySelectorAll('.column-tasks')
+
+  columns.forEach(column => {
+    column.ondragover = (e) => {
+      e.preventDefault()
+      column.classList.add('drag-over')
     }
 
-    // Delete button
-    const deleteBtn = document.createElement('button')
-    deleteBtn.className = 'task-action-btn'
-    deleteBtn.textContent = '🗑️'
-    deleteBtn.title = 'Delete task'
-    deleteBtn.addEventListener('click', () => {
-      if (confirm(`Delete "${task.name}"?`)) {
-        deleteTask(task.id)
-      }
-    })
-    actions.appendChild(deleteBtn)
+    column.ondragleave = () => {
+      column.classList.remove('drag-over')
+    }
 
-    taskItem.appendChild(checkbox)
-    taskItem.appendChild(content)
-    taskItem.appendChild(actions)
+    column.ondrop = (e) => {
+      e.preventDefault()
+      column.classList.remove('drag-over')
 
-    taskList.appendChild(taskItem)
+      const taskId = parseInt(e.dataTransfer.getData('taskId'))
+      const newStatus = column.parentElement.dataset.status
+
+      moveTask(taskId, newStatus)
+    }
   })
 }
 
-// Modal controls
-addTaskBtn.addEventListener('click', () => {
+// ===== ACTIVE TASK MANAGEMENT =====
+function setActiveTask(taskId) {
+  activeTaskId = taskId
+  renderKanban()
+  showCurrentTaskDisplay()
+}
+
+function showCurrentTaskDisplay() {
+  if (!activeTaskId) return
+
+  const task = tasks.find(t => t.id === activeTaskId)
+  if (!task) return
+
+  currentTaskName.textContent = task.title
+  const progress = `${task.completedPomodoros} / ${task.estimatedPomodoros} 🍅`
+  currentTaskProgress.textContent = progress
+  currentTaskDisplay.style.display = 'block'
+}
+
+function updateCurrentTaskDisplay() {
+  if (!activeTaskId || !currentTaskDisplay.style.display || currentTaskDisplay.style.display === 'none') return
+  showCurrentTaskDisplay()
+}
+
+function hideCurrentTaskDisplay() {
+  currentTaskDisplay.style.display = 'none'
+}
+
+// ===== MODAL CONTROLS =====
+if (!addTaskBtn) {
+  console.error('addTaskBtn not found!')
+}
+if (!saveTaskBtn) {
+  console.error('saveTaskBtn not found!')
+}
+if (!addTaskModal) {
+  console.error('addTaskModal not found!')
+}
+
+addTaskBtn?.addEventListener('click', () => {
   addTaskModal.classList.add('active')
   taskNameInput.focus()
 })
 
-addTaskClose.addEventListener('click', () => {
+addTaskClose?.addEventListener('click', () => {
   addTaskModal.classList.remove('active')
 })
 
-cancelTaskBtn.addEventListener('click', () => {
+cancelTaskBtn?.addEventListener('click', () => {
   addTaskModal.classList.remove('active')
 })
 
-addTaskModal.addEventListener('click', (e) => {
+addTaskModal?.addEventListener('click', (e) => {
   if (e.target === addTaskModal) {
     addTaskModal.classList.remove('active')
   }
 })
 
-// Save task
-saveTaskBtn.addEventListener('click', () => {
-  const name = taskNameInput.value.trim()
-  const pomodoros = parseInt(taskPomodorosInput.value)
+saveTaskBtn?.addEventListener('click', () => {
+  console.log('Save task button clicked!')
 
-  if (!name) {
+  const title = taskNameInput.value.trim()
+
+  if (!title) {
     alert('Please enter a task name')
     return
   }
 
-  if (pomodoros < 1 || pomodoros > 20) {
-    alert('Pomodoros must be between 1 and 20')
-    return
+  const taskData = {
+    title,
+    description: taskDescInput.value.trim(),
+    difficulty: taskDifficultyInput.value,
+    estimatedPomodoros: parseInt(taskPomodorosInput.value),
+    tag: taskTagInput.value,
+    deadline: taskDeadlineInput.value || null,
+    urgent: taskUrgentInput.checked,
+    important: taskImportantInput.checked
   }
 
-  addTask(name, pomodoros)
+  console.log('Task data:', taskData)
 
-  // Reset form
-  taskNameInput.value = ''
-  taskPomodorosInput.value = '2'
+  try {
+    addTask(taskData)
+    console.log('Task added successfully!')
 
-  // Close modal
-  addTaskModal.classList.remove('active')
+    // Reset form
+    taskNameInput.value = ''
+    taskDescInput.value = ''
+    taskDifficultyInput.value = 'M'
+    taskPomodorosInput.value = '2'
+    taskTagInput.value = 'work'
+    taskDeadlineInput.value = ''
+    taskUrgentInput.checked = false
+    taskImportantInput.checked = false
 
-  showNotification('Task Added!', `${name} added to queue! 📋`)
+    // Close modal
+    addTaskModal.classList.remove('active')
+
+    // Show notification
+    if (window.sendNotification) {
+      sendNotification('Task Added!', `${title} added to backlog! 📋`)
+    } else {
+      console.log('Task added:', title)
+    }
+  } catch (error) {
+    console.error('Error adding task:', error)
+    alert('Error adding task: ' + error.message)
+  }
 })
 
-// Enter key to save
 taskNameInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
     saveTaskBtn.click()
   }
 })
 
-// Hook into timer completion to award focus points
-// We'll need to modify script.js to call this function
+// Priorities modal
+viewPrioritiesBtn.addEventListener('click', () => {
+  showPrioritiesModal()
+})
+
+prioritiesClose.addEventListener('click', () => {
+  prioritiesModal.classList.remove('active')
+})
+
+prioritiesModal.addEventListener('click', (e) => {
+  if (e.target === prioritiesModal) {
+    prioritiesModal.classList.remove('active')
+  }
+})
+
+function showPrioritiesModal() {
+  // Recalculate priorities
+  recalculatePriorities()
+
+  // Get Eat The Frog task
+  const frogTask = getEatTheFrogTask()
+  const frogTaskFull = document.getElementById('frogTaskFull')
+
+  if (frogTask) {
+    frogTaskFull.innerHTML = `
+      <div class="frog-card">
+        <h3>🐸 ${frogTask.title}</h3>
+        ${frogTask.description ? `<p>${frogTask.description}</p>` : ''}
+        <div class="frog-meta">
+          <span>Difficulty: ${frogTask.difficulty}</span>
+          <span>Estimate: ${frogTask.timeEstimate} min</span>
+          <span>${getTagEmoji(frogTask.tag)} ${frogTask.tag}</span>
+        </div>
+      </div>
+    `
+  } else {
+    frogTaskFull.textContent = 'No tasks available. Add some tasks to get started!'
+  }
+
+  // Eisenhower Matrix
+  const quadrants = getEisenhowerQuadrants()
+
+  document.getElementById('urgentImportant').innerHTML = renderQuadrantTasks(quadrants.urgentImportant)
+  document.getElementById('notUrgentImportant').innerHTML = renderQuadrantTasks(quadrants.notUrgentImportant)
+  document.getElementById('urgentNotImportant').innerHTML = renderQuadrantTasks(quadrants.urgentNotImportant)
+  document.getElementById('notUrgentNotImportant').innerHTML = renderQuadrantTasks(quadrants.notUrgentNotImportant)
+
+  // Recommended order
+  const recommended = getRecommendedOrder()
+  const recommendedOrder = document.getElementById('recommendedOrder')
+
+  if (recommended.length > 0) {
+    recommendedOrder.innerHTML = recommended.slice(0, 10).map((task, i) => `
+      <div class="recommended-task">
+        <span class="task-rank">${i + 1}</span>
+        <span class="task-title">${task.wasFrog ? '🐸 ' : ''}${task.title}</span>
+        <span class="task-score">${getTagEmoji(task.tag)}</span>
+      </div>
+    `).join('')
+  } else {
+    recommendedOrder.textContent = 'No active tasks'
+  }
+
+  prioritiesModal.classList.add('active')
+}
+
+function renderQuadrantTasks(tasks) {
+  if (tasks.length === 0) {
+    return '<p class="no-tasks">No tasks</p>'
+  }
+
+  return tasks.map(task => `
+    <div class="quadrant-task">
+      <span>${task.wasFrog ? '🐸 ' : ''}${task.title}</span>
+      <span class="task-tag">${getTagEmoji(task.tag)}</span>
+    </div>
+  `).join('')
+}
+
+// ===== HOOK INTO TIMER =====
 window.onPomodoroComplete = function() {
   if (activeTaskId) {
     completePomodoro(activeTaskId)
   } else {
-    // Award 1 point even without active task
+    // Award XP and focus points even without active task
     awardFocusPoints(1)
+    awardXP(5, 'Pomodoro completed!')
   }
 }
 
-// Initialize
-focusPointsEl.textContent = focusPoints
-renderTasks()
-checkMilestones()
-renderMilestones()
+// ===== INITIALIZATION =====
+function init() {
+  focusPointsEl.textContent = focusPoints
+  recalculatePriorities()
+  renderKanban()
+  setupDragAndDrop()
+  checkBadges()
 
-console.log('Task Queue & Focus Points system loaded! 🚀⭐')
+  console.log('🚀 Kanban & Prioritization System Loaded!')
+  console.log(`📊 ${tasks.length} tasks loaded`)
+  console.log(`⭐ Focus Points: ${focusPoints}`)
+  console.log(`🎯 User Level: ${userLevel} (${userXP} XP)`)
+}
+
+init()
