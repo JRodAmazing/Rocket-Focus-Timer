@@ -170,20 +170,38 @@ function showProfileDashboard() {
   // Update profile stats - ensure clean display
   const levelDisplay = document.getElementById('userLevel')
   const xpDisplay = document.getElementById('userXP')
+  const subtitleDisplay = document.querySelector('.profile-subtitle')
 
-  if (window.userXP !== undefined && window.userLevel !== undefined) {
-    levelDisplay.textContent = window.userLevel
-    xpDisplay.textContent = window.userXP
-  } else {
-    levelDisplay.textContent = '1'
-    xpDisplay.textContent = '0'
-  }
+  // Set level and XP with clean numeric values
+  const currentLevel = (window.userLevel !== undefined) ? window.userLevel : 1
+  const currentXP = (window.userXP !== undefined) ? window.userXP : 0
 
+  levelDisplay.textContent = currentLevel
+  xpDisplay.textContent = currentXP
+
+  // Update subtitle based on stats
   if (window.getGameStats) {
     const gameStats = window.getGameStats()
-    document.getElementById('profileTotalTasks').textContent = gameStats.tasksCompleted
-    document.getElementById('profileFrogsSlain').textContent = gameStats.frogsSlain
-    document.getElementById('profileBestStreak').textContent = gameStats.bestStreak
+    const tasksCount = gameStats.tasksCompleted || 0
+    const frogsCount = gameStats.frogsSlain || 0
+
+    if (tasksCount === 0) {
+      subtitleDisplay.textContent = 'Ready to conquer your first task!'
+    } else if (tasksCount < 5) {
+      subtitleDisplay.textContent = 'Getting started with focused work 🚀'
+    } else if (tasksCount < 10) {
+      subtitleDisplay.textContent = 'Building momentum, keep it up! 💪'
+    } else if (tasksCount < 25) {
+      subtitleDisplay.textContent = 'Productivity Master in Training ⭐'
+    } else if (frogsCount >= 5) {
+      subtitleDisplay.textContent = 'Elite Frog Slayer & Focus Champion 🐸'
+    } else {
+      subtitleDisplay.textContent = 'Productivity Master & Focus Champion 🎯'
+    }
+
+    document.getElementById('profileTotalTasks').textContent = tasksCount
+    document.getElementById('profileFrogsSlain').textContent = frogsCount
+    document.getElementById('profileBestStreak').textContent = gameStats.bestStreak || 0
 
     if (gameStats.fastestTask > 0) {
       document.getElementById('profileFastestTask').textContent = gameStats.fastestTask + ' min'
