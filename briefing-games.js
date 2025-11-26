@@ -218,6 +218,12 @@ profileModal?.addEventListener('click', (e) => {
   }
 })
 
+// Morning Bulletin Button
+const morningBulletinBtn = document.getElementById('morningBulletinBtn')
+morningBulletinBtn?.addEventListener('click', () => {
+  showDailyBriefing()
+})
+
 // ===== BREAK GAMES SYSTEM =====
 const breakGamesModal = document.getElementById('breakGamesModal')
 const gamesClose = document.getElementById('gamesClose')
