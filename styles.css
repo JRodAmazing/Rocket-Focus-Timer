@@ -1100,7 +1100,12 @@ body{align-items:stretch;padding:0}
 /* ========================================
    DAILY BRIEFING MODAL
    ======================================== */
-.daily-briefing-modal .modal-content{max-width:700px}
+.daily-briefing-modal .modal-content{
+  max-width:600px;
+  max-height:70vh;
+  display:flex;
+  flex-direction:column;
+}
 
 .briefing-header{
   background:linear-gradient(135deg,#667eea,#764ba2);
@@ -1114,6 +1119,30 @@ body{align-items:stretch;padding:0}
 
 .briefing-header h2{margin:0;font-size:28px}
 .briefing-header .modal-close{color:#fff}
+
+.daily-briefing-modal .modal-body{
+  overflow-y:auto;
+  max-height:calc(70vh - 120px);
+  padding:20px;
+}
+
+.daily-briefing-modal .modal-body::-webkit-scrollbar{
+  width:8px;
+}
+
+.daily-briefing-modal .modal-body::-webkit-scrollbar-track{
+  background:#f1f1f1;
+  border-radius:4px;
+}
+
+.daily-briefing-modal .modal-body::-webkit-scrollbar-thumb{
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  border-radius:4px;
+}
+
+.daily-briefing-modal .modal-body::-webkit-scrollbar-thumb:hover{
+  background:linear-gradient(135deg,#5a6ed8,#6a428e);
+}
 
 .briefing-section{margin-bottom:24px}
 .briefing-section h3{margin:0 0 12px 0;color:#333;font-size:18px}
