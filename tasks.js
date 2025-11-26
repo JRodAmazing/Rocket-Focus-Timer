@@ -565,6 +565,17 @@ function createTaskCard(task) {
     }
   }
 
+  // Edit button
+  const editBtn = document.createElement('button')
+  editBtn.className = 'card-btn card-btn-edit'
+  editBtn.textContent = '✏️'
+  editBtn.title = 'Edit task'
+  editBtn.onclick = (e) => {
+    e.stopPropagation()
+    openEditTaskModal(task.id)
+  }
+  actions.appendChild(editBtn)
+
   // Delete button
   const deleteBtn = document.createElement('button')
   deleteBtn.className = 'card-btn card-btn-delete'
@@ -828,6 +839,85 @@ function renderQuadrantTasks(tasks) {
   `).join('')
 }
 
+// ===== EDIT TASK MODAL =====
+const editTaskModal = document.getElementById('editTaskModal')
+const editTaskClose = document.getElementById('editTaskClose')
+const cancelEditTaskBtn = document.getElementById('cancelEditTaskBtn')
+const saveEditTaskBtn = document.getElementById('saveEditTaskBtn')
+
+const editTaskIdInput = document.getElementById('editTaskId')
+const editTaskNameInput = document.getElementById('editTaskNameInput')
+const editTaskDescInput = document.getElementById('editTaskDescInput')
+const editTaskDifficultyInput = document.getElementById('editTaskDifficultyInput')
+const editTaskPomodorosInput = document.getElementById('editTaskPomodorosInput')
+const editTaskTagInput = document.getElementById('editTaskTagInput')
+const editTaskDeadlineInput = document.getElementById('editTaskDeadlineInput')
+const editTaskUrgentInput = document.getElementById('editTaskUrgentInput')
+const editTaskImportantInput = document.getElementById('editTaskImportantInput')
+
+function openEditTaskModal(taskId) {
+  const task = tasks.find(t => t.id === taskId)
+  if (!task) return
+
+  // Populate form with task data
+  editTaskIdInput.value = task.id
+  editTaskNameInput.value = task.title
+  editTaskDescInput.value = task.description || ''
+  editTaskDifficultyInput.value = task.difficulty || 'M'
+  editTaskPomodorosInput.value = task.estimatedPomodoros
+  editTaskTagInput.value = task.tag || 'work'
+  editTaskDeadlineInput.value = task.deadline || ''
+  editTaskUrgentInput.checked = task.urgent || false
+  editTaskImportantInput.checked = task.important || false
+
+  editTaskModal.classList.add('active')
+  editTaskNameInput.focus()
+}
+
+editTaskClose?.addEventListener('click', () => {
+  editTaskModal.classList.remove('active')
+})
+
+cancelEditTaskBtn?.addEventListener('click', () => {
+  editTaskModal.classList.remove('active')
+})
+
+editTaskModal?.addEventListener('click', (e) => {
+  if (e.target === editTaskModal) {
+    editTaskModal.classList.remove('active')
+  }
+})
+
+saveEditTaskBtn?.addEventListener('click', () => {
+  const taskId = parseInt(editTaskIdInput.value)
+  const title = editTaskNameInput.value.trim()
+
+  if (!title) {
+    alert('Please enter a task name')
+    return
+  }
+
+  const updates = {
+    title,
+    description: editTaskDescInput.value.trim(),
+    difficulty: editTaskDifficultyInput.value,
+    estimatedPomodoros: parseInt(editTaskPomodorosInput.value),
+    timeEstimate: parseInt(editTaskPomodorosInput.value) * 25,
+    tag: editTaskTagInput.value,
+    deadline: editTaskDeadlineInput.value || null,
+    urgent: editTaskUrgentInput.checked,
+    important: editTaskImportantInput.checked
+  }
+
+  updateTask(taskId, updates)
+
+  editTaskModal.classList.remove('active')
+
+  if (window.sendNotification) {
+    sendNotification('Task Updated!', `${title} has been updated! ✏️`)
+  }
+})
+
 // ===== HOOK INTO TIMER =====
 window.onPomodoroComplete = function() {
   if (activeTaskId) {
@@ -839,6 +929,29 @@ window.onPomodoroComplete = function() {
   }
 }
 
+// ===== LIVE STATS UPDATE =====
+function updateLiveStats() {
+  // Update XP and Level displays
+  const userXPDisplay = document.getElementById('userXPDisplay')
+  const userLevelDisplay = document.getElementById('userLevelDisplay')
+
+  if (userXPDisplay) userXPDisplay.textContent = userXP
+  if (userLevelDisplay) userLevelDisplay.textContent = userLevel
+
+  // Update ticker with today's stats
+  const gameStats = getGameStats()
+  const tickerTasks = document.getElementById('tickerTasks')
+  const tickerXP = document.getElementById('tickerXP')
+  const tickerFrogs = document.getElementById('tickerFrogs')
+
+  if (tickerTasks) tickerTasks.textContent = gameStats.tasksCompletedToday
+  if (tickerXP) tickerXP.textContent = '+' + (gameStats.tasksCompletedToday * 15) // Rough estimate
+  if (tickerFrogs) tickerFrogs.textContent = gameStats.frogsSlain
+}
+
+// Make updateLiveStats globally accessible
+window.updateLiveStats = updateLiveStats
+
 // ===== INITIALIZATION =====
 function init() {
   focusPointsEl.textContent = focusPoints
@@ -846,6 +959,10 @@ function init() {
   renderKanban()
   setupDragAndDrop()
   checkBadges()
+  updateLiveStats()
+
+  // Update live stats every 2 seconds
+  setInterval(updateLiveStats, 2000)
 
   console.log('🚀 Kanban & Prioritization System Loaded!')
   console.log(`📊 ${tasks.length} tasks loaded`)

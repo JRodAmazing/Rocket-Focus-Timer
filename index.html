@@ -126,12 +126,24 @@
           </div>
         </div>
 
-        <!-- Stats Bar -->
+        <!-- Stats Bar with Live Updates -->
         <div class="stats-bar">
           <div class="stat"><span id="totalSessions">0</span><label>sessions</label></div>
           <div class="stat"><span id="totalMinutes">0</span><label>minutes</label></div>
           <div class="stat"><span id="currentStreak">0</span><label>🔥 streak</label></div>
-          <div class="stat focus-stat"><span id="focusPoints">0</span><label>⭐ points</label></div>
+          <div class="stat focus-stat live-stat"><span id="focusPoints">0</span><label>⭐ points</label></div>
+          <div class="stat xp-stat live-stat"><span id="userXPDisplay">0</span><label>💎 XP</label></div>
+          <div class="stat level-stat"><span id="userLevelDisplay">1</span><label>📊 level</label></div>
+        </div>
+
+        <!-- Live Points Ticker -->
+        <div class="points-ticker" id="pointsTicker">
+          <div class="ticker-label">🎯 Today's Performance:</div>
+          <div class="ticker-content">
+            <span class="ticker-item">Tasks: <strong id="tickerTasks">0</strong></span>
+            <span class="ticker-item">XP Gained: <strong id="tickerXP">+0</strong></span>
+            <span class="ticker-item">Frogs: <strong id="tickerFrogs">0</strong> 🐸</span>
+          </div>
         </div>
 
         <!-- Achievements & Milestones -->
@@ -285,6 +297,75 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div class="modal" id="editTaskModal">
+      <div class="modal-content task-modal">
+        <div class="modal-header">
+          <h3>✏️ Edit Task</h3>
+          <button class="modal-close" id="editTaskClose">×</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editTaskId" />
+          <div class="form-group">
+            <label>Task Name*</label>
+            <input type="text" id="editTaskNameInput" placeholder="e.g., Write project proposal" />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="editTaskDescInput" placeholder="Add details about this task..." rows="3"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Difficulty</label>
+              <select id="editTaskDifficultyInput">
+                <option value="S">S - Small</option>
+                <option value="M">M - Medium</option>
+                <option value="L">L - Large</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Estimated Pomodoros</label>
+              <input type="number" id="editTaskPomodorosInput" min="1" max="20" value="2" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tag</label>
+              <select id="editTaskTagInput">
+                <option value="work">💼 Work</option>
+                <option value="personal">🏠 Personal</option>
+                <option value="training">📚 Training</option>
+                <option value="health">💪 Health</option>
+                <option value="creative">🎨 Creative</option>
+                <option value="urgent">⚡ Urgent</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Deadline (Optional)</label>
+              <input type="date" id="editTaskDeadlineInput" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Priority Assessment</label>
+            <div class="priority-grid">
+              <label class="priority-option">
+                <input type="checkbox" id="editTaskUrgentInput" />
+                <span>⏰ Urgent</span>
+              </label>
+              <label class="priority-option">
+                <input type="checkbox" id="editTaskImportantInput" />
+                <span>⭐ Important</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancelEditTaskBtn" class="btn-action btn-warning-action">Cancel</button>
+          <button id="saveEditTaskBtn" class="btn-action">Save Changes</button>
         </div>
       </div>
     </div>
