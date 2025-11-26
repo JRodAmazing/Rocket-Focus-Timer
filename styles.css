@@ -1235,7 +1235,14 @@ body{align-items:stretch;padding:0}
   margin-bottom:16px;
 }
 
-.profile-hero h2{margin:0 0 12px 0}
+.profile-hero h2{margin:0 0 8px 0}
+
+.profile-subtitle{
+  margin:0 0 16px 0;
+  font-size:14px;
+  opacity:0.9;
+  font-style:italic;
+}
 
 .profile-level{
   display:flex;

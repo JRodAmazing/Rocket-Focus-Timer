@@ -167,10 +167,16 @@ const profileModal = document.getElementById('profileModal')
 const profileClose = document.getElementById('profileClose')
 
 function showProfileDashboard() {
-  // Update profile stats
+  // Update profile stats - ensure clean display
+  const levelDisplay = document.getElementById('userLevel')
+  const xpDisplay = document.getElementById('userXP')
+
   if (window.userXP !== undefined && window.userLevel !== undefined) {
-    document.getElementById('userLevel').textContent = window.userLevel
-    document.getElementById('userXP').textContent = window.userXP
+    levelDisplay.textContent = window.userLevel
+    xpDisplay.textContent = window.userXP
+  } else {
+    levelDisplay.textContent = '1'
+    xpDisplay.textContent = '0'
   }
 
   if (window.getGameStats) {
